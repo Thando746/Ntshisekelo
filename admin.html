@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Staff admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16323a; --ink-soft: #4a626a; --paper: #f6faf9; --card: #fff; --sky: #d7ecf3;
+    --sun: #ffc83d; --open: #2b8a66; --closed: #b23a48; --line: #cfdfe2;
+    --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+    --body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.5 var(--body); }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 6px; }
+  .wrap { width: min(980px, 100% - 2rem); margin-inline: auto; }
+  header { background: var(--sky); padding: 1rem 0; border-bottom: 2px solid var(--ink); }
+  header .wrap { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; }
+  header h1 { font: 700 1.4rem var(--display); margin: 0; }
+  header a { color: var(--ink); }
+  h2 { font: 600 1.4rem var(--display); margin: 0 0 1rem; }
+  section.card { background: var(--card); border: 2px solid var(--ink); border-radius: 18px; padding: 1.5rem; margin: 1.5rem 0; }
+  label { display: grid; gap: .3rem; font-weight: 700; font-size: .92rem; }
+  input, select, textarea {
+    font: inherit; font-weight: 400; color: var(--ink); padding: .6rem .7rem;
+    border: 2px solid var(--ink); border-radius: 10px; background: #fff; width: 100%;
+  }
+  textarea { min-height: 70px; resize: vertical; }
+  .btn { font: 700 1rem var(--display); background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: .65rem 1.3rem; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
+  .btn.small { padding: .35rem .9rem; font-size: .9rem; }
+  .btn.danger { background: var(--closed); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .full { grid-column: 1 / -1; }
+  .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: .7rem 1.2rem; border-radius: 999px; display: none; z-index: 10; }
+  .toast.show { display: block; }
+  .toast.err { background: var(--closed); }
+
+  /* login */
+  #login { max-width: 380px; margin: 4rem auto; }
+
+  /* open/close switch */
+  .status-row { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; }
+  .switch { display: inline-flex; border: 2px solid var(--ink); border-radius: 999px; overflow: hidden; }
+  .switch button { font: 700 1.05rem var(--display); border: 0; padding: .6rem 1.4rem; background: #fff; color: var(--ink); cursor: pointer; }
+  .switch button.on-open { background: var(--open); color: #fff; }
+  .switch button.on-closed { background: var(--closed); color: #fff; }
+
+  /* groups */
+  .group-row { display: grid; grid-template-columns: 1.2fr 1.2fr .7fr .7fr auto; gap: .7rem; align-items: end; margin-bottom: .8rem; }
+  .group-row .free { font-weight: 700; padding-bottom: .65rem; }
+
+  /* applications */
+  .app { border-top: 2px solid var(--line); padding: 1rem 0; display: grid; gap: .4rem; }
+  .app:first-of-type { border-top: 0; }
+  .app-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: baseline; }
+  .app-head strong { font: 600 1.15rem var(--display); }
+  .app small { color: var(--ink-soft); }
+  .app-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+  .app-actions select { width: auto; padding: .3rem .5rem; }
+  .pill { font-weight: 700; font-size: .85rem; padding: .1rem .7rem; border-radius: 999px; background: var(--sun); }
+
+  @media (max-width: 720px) {
+    .grid2 { grid-template-columns: 1fr; }
+    .group-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="login" class="card-wrap">
+  <section class="card">
+    <h2>Staff login</h2>
+    <form id="loginForm">
+      <label>Password<input type="password" id="pw" autocomplete="current-password" required></label>
+      <p><button class="btn" type="submit">Log in</button></p>
+    </form>
+    <p><a href="/">Back to the public page</a></p>
+  </section>
+</div>
+
+<div id="app" hidden>
+  <header>
+    <div class="wrap">
+      <h1>Staff admin</h1>
+      <div><a href="/" target="_blank">View public page</a> &nbsp; <button class="btn ghost small" id="logout">Log out</button></div>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <section class="card">
+      <h2>Applications</h2>
+      <div class="status-row">
+        <div class="switch" role="group" aria-label="Applications status">
+          <button id="btnOpen" type="button">Open</button>
+          <button id="btnClosed" type="button">Closed</button>
+        </div>
+        <span id="statusHint"></span>
+      </div>
+      <p></p>
+      <label>Message shown on the sign
+        <textarea id="statusNote" placeholder="For example: Applications for the new year are open."></textarea>
+      </label>
+      <p><button class="btn" id="saveStatus">Save status</button></p>
+    </section>
+
+    <section class="card">
+      <h2>Spaces in each age group</h2>
+      <div id="groups"></div>
+      <p>
+        <button class="btn ghost" id="addGroup" type="button">Add age group</button>
+        <button class="btn" id="saveGroups" type="button">Save spaces</button>
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Creche details</h2>
+      <div class="grid2">
+        <label>Creche name<input id="s_name"></label>
+        <label>Tagline<input id="s_tagline"></label>
+        <label>Phone<input id="s_phone"></label>
+        <label>Email<input id="s_email"></label>
+        <label class="full">Address<input id="s_address"></label>
+        <label class="full">Opening hours<input id="s_hours"></label>
+      </div>
+      <p><button class="btn" id="saveDetails">Save details</button></p>
+    </section>
+
+    <section class="card">
+      <h2>Applications received <span id="appCount"></span></h2>
+      <div id="apps"></div>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let token = sessionStorage.getItem("creche_token") || "";
+  let data = null;
+  let isOpen = true;
+
+  function toast(text, err) {
+    const t = $("toast");
+    t.textContent = text;
+    t.className = "toast show" + (err ? " err" : "");
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(() => (t.className = "toast"), 3000);
+  }
+
+  async function api(path, method = "GET", body) {
+    const res = await fetch(path, {
+      method,
+      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    const out = await res.json().catch(() => ({}));
+    if (res.status === 401 && token) { logout(); }
+    if (!res.ok) throw new Error(out.error || "Something went wrong.");
+    return out;
+  }
+
+  /* ---------- login ---------- */
+  $("loginForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("pw").value }) });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error);
+      token = out.token;
+      sessionStorage.setItem("creche_token", token);
+      $("pw").value = "";
+      start();
+    } catch (err) { toast(err.message || "Could not log in.", true); }
+  });
+
+  function logout() {
+    token = "";
+    sessionStorage.removeItem("creche_token");
+    $("app").hidden = true;
+    $("login").hidden = false;
+  }
+  $("logout").addEventListener("click", logout);
+
+  async function start() {
+    try {
+      data = await api("/api/admin/data");
+    } catch { return; }
+    $("login").hidden = true;
+    $("app").hidden = false;
+    fill();
+  }
+
+  /* ---------- fill screens ---------- */
+  function fill() {
+    const s = data.settings;
+    isOpen = s.applicationsOpen;
+    paintSwitch();
+    $("statusNote").value = s.statusNote || "";
+    ["name", "tagline", "phone", "email", "address", "hours"].forEach((k) => ($("s_" + k).value = s[k] || ""));
+    paintGroups();
+    paintApps();
+  }
+
+  function paintSwitch() {
+    $("btnOpen").className = isOpen ? "on-open" : "";
+    $("btnClosed").className = !isOpen ? "on-closed" : "";
+    $("statusHint").textContent = isOpen ? "People can send applications." : "The apply form is hidden from the public.";
+  }
+  $("btnOpen").onclick = () => { isOpen = true; paintSwitch(); };
+  $("btnClosed").onclick = () => { isOpen = false; paintSwitch(); };
+
+  /* ---------- settings ---------- */
+  function settingsBody() {
+    return {
+      name: $("s_name").value, tagline: $("s_tagline").value, phone: $("s_phone").value,
+      email: $("s_email").value, address: $("s_address").value, hours: $("s_hours").value,
+      statusNote: $("statusNote").value, applicationsOpen: isOpen,
+    };
+  }
+  async function saveSettings(msg) {
+    try {
+      const out = await api("/api/admin/settings", "PUT", settingsBody());
+      data.settings = out.settings;
+      toast(msg);
+    } catch (err) { toast(err.message, true); }
+  }
+  $("saveStatus").onclick = () => saveSettings("Status saved");
+  $("saveDetails").onclick = () => saveSettings("Details saved");
+
+  /* ---------- groups ---------- */
+  function paintGroups() {
+    $("groups").innerHTML = data.groups.map((g, i) => `
+      <div class="group-row" data-i="${i}">
+        <label>Group name<input data-f="name" value="${esc(g.name)}"></label>
+        <label>Ages<input data-f="ageRange" value="${esc(g.ageRange)}"></label>
+        <label>Total places<input data-f="capacity" type="number" min="0" value="${g.capacity}"></label>
+        <label>Children enrolled<input data-f="enrolled" type="number" min="0" value="${g.enrolled}"></label>
+        <button class="btn danger small" data-remove="${i}" type="button" aria-label="Remove ${esc(g.name)}">Remove</button>
+      </div>`).join("") || "<p>No age groups yet. Add one below.</p>";
+  }
+  function readGroups() {
+    return [...document.querySelectorAll(".group-row")].map((row) => {
+      const i = +row.dataset.i;
+      const g = { id: data.groups[i].id };
+      row.querySelectorAll("input").forEach((inp) => (g[inp.dataset.f] = inp.value));
+      return g;
+    });
+  }
+  $("groups").addEventListener("click", (e) => {
+    const idx = e.target.dataset.remove;
+    if (idx === undefined) return;
+    data.groups = readGroups();
+    data.groups.splice(+idx, 1);
+    paintGroups();
+  });
+  $("addGroup").onclick = () => {
+    data.groups = readGroups();
+    data.groups.push({ id: "g" + Date.now(), name: "", ageRange: "", capacity: 10, enrolled: 0 });
+    paintGroups();
+  };
+  $("saveGroups").onclick = async () => {
+    try {
+      const out = await api("/api/admin/groups", "PUT", { groups: readGroups() });
+      data.groups = out.groups;
+      paintGroups();
+      toast("Spaces saved");
+    } catch (err) { toast(err.message, true); }
+  };
+
+  /* ---------- applications ---------- */
+  const STATUSES = [["new", "New"], ["contacted", "Contacted"], ["waitlist", "Waiting list"], ["accepted", "Accepted"], ["declined", "Declined"]];
+  function paintApps() {
+    const list = data.applications;
+    $("appCount").textContent = list.length ? `(${list.length})` : "";
+    $("apps").innerHTML = list.map((a) => {
+      const g = data.groups.find((x) => x.id === a.groupId);
+      const d = new Date(a.createdAt).toLocaleString();
+      return `
+      <div class="app" data-id="${esc(a.id)}">
+        <div class="app-head"><strong>${esc(a.childName)}</strong><small>${esc(d)}</small></div>
+        <div>Born ${esc(a.childBirthDate)} &middot; ${esc(g ? g.name : "Unknown group")}</div>
+        <div>Parent: ${esc(a.parentName)} &middot; <a href="tel:${esc(a.phone)}">${esc(a.phone)}</a>${a.email ? ` &middot; <a href="mailto:${esc(a.email)}">${esc(a.email)}</a>` : ""}</div>
+        ${a.message ? `<div><small>Note:</small> ${esc(a.message)}</div>` : ""}
+        <div class="app-actions">
+          <select data-status aria-label="Status for ${esc(a.childName)}">
+            ${STATUSES.map(([v, l]) => `<option value="${v}" ${a.status === v ? "selected" : ""}>${l}</option>`).join("")}
+          </select>
+          <button class="btn danger small" data-del type="button">Delete</button>
+        </div>
+      </div>`;
+    }).join("") || "<p>No applications yet.</p>";
+  }
+  $("apps").addEventListener("change", async (e) => {
+    if (!e.target.matches("[data-status]")) return;
+    const id = e.target.closest(".app").dataset.id;
+    try { await api("/api/admin/applications/" + id, "PATCH", { status: e.target.value }); toast("Status updated"); }
+    catch (err) { toast(err.message, true); }
+  });
+  $("apps").addEventListener("click", async (e) => {
+    if (!e.target.matches("[data-del]")) return;
+    if (!confirm("Delete this application? This cannot be undone.")) return;
+    const id = e.target.closest(".app").dataset.id;
+    try {
+      await api("/api/admin/applications/" + id, "DELETE");
+      data.applications = data.applications.filter((a) => a.id !== id);
+      paintApps();
+      toast("Application deleted");
+    } catch (err) { toast(err.message, true); }
+  });
+
+  if (token) start();
+</script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Creche vacancies and applications</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #16323a;
+    --ink-soft: #4a626a;
+    --paper: #f6faf9;
+    --card: #ffffff;
+    --sky: #d7ecf3;
+    --sun: #ffc83d;
+    --open: #2b8a66;
+    --closed: #b23a48;
+    --line: #cfdfe2;
+    --display: "Fredoka", "Trebuchet MS", system-ui, sans-serif;
+    --body: "Nunito Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+  .wrap { width: min(1040px, 100% - 2.5rem); margin-inline: auto; }
+
+  /* ---------- hero ---------- */
+  .hero { background: var(--sky); padding: 1.25rem 0 0; overflow: hidden; }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 2rem;
+    align-items: start;
+    padding-bottom: 3.5rem;
+  }
+  .brand { font-family: var(--display); font-weight: 600; font-size: 1.1rem; margin-bottom: 3rem; }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    line-height: 1.05;
+    margin: 0 0 1rem;
+    max-width: 14ch;
+  }
+  .tagline { font-size: 1.2rem; color: var(--ink-soft); max-width: 32ch; margin: 0 0 1.75rem; }
+  .btn {
+    display: inline-block;
+    font: 700 1.05rem var(--display);
+    background: var(--ink);
+    color: #fff;
+    border: 0;
+    border-radius: 999px;
+    padding: .8rem 1.6rem;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn:hover { background: #0e2228; }
+  .btn[disabled] { opacity: .6; cursor: wait; }
+
+  /* the door sign: the one memorable thing */
+  .sign-area { display: flex; justify-content: center; padding-top: 0; }
+  .sign { position: relative; width: min(330px, 100%); padding-top: 70px; transform-origin: 50% 0; animation: sway 1.6s ease-out 1; }
+  .sign::before, .sign::after {
+    content: ""; position: absolute; top: 0; height: 80px; width: 3px; background: var(--ink);
+  }
+  .sign::before { left: 22%; transform: rotate(-12deg); transform-origin: top; }
+  .sign::after { right: 22%; transform: rotate(12deg); transform-origin: top; }
+  .sign-board {
+    position: relative;
+    border: 4px solid var(--ink);
+    border-radius: 22px;
+    background: var(--open);
+    color: #fff;
+    text-align: center;
+    padding: 1.4rem 1.2rem 1.5rem;
+    box-shadow: 0 8px 0 var(--ink);
+  }
+  .sign-board.closed { background: var(--closed); }
+  .sign-board .hole {
+    position: absolute; top: 10px; width: 12px; height: 12px; border-radius: 50%; background: var(--sky); border: 3px solid var(--ink);
+  }
+  .hole.l { left: 20%; } .hole.r { right: 20%; }
+  .sign-small { font-size: 1rem; margin: .6rem 0 0; font-weight: 600; }
+  .sign-word { font-family: var(--display); font-weight: 700; font-size: clamp(3.2rem, 9vw, 4.6rem); line-height: 1; margin: .5rem 0 .2rem; }
+  .sign-note { font-size: .98rem; margin: .5rem 0 0; }
+  @keyframes sway {
+    0% { transform: rotate(5deg); } 30% { transform: rotate(-3deg); } 60% { transform: rotate(1.5deg); } 100% { transform: rotate(0); }
+  }
+  @media (prefers-reduced-motion: reduce) { .sign { animation: none; } html { scroll-behavior: auto; } }
+
+  /* ---------- sections ---------- */
+  section { padding: 3.5rem 0; }
+  h2 { font-family: var(--display); font-weight: 600; font-size: 2rem; margin: 0 0 .4rem; }
+  .lead { color: var(--ink-soft); margin: 0 0 2rem; max-width: 55ch; }
+
+  .rooms { display: grid; gap: 1rem; }
+  .room {
+    display: grid;
+    grid-template-columns: 1fr 1.3fr auto;
+    gap: 1.25rem;
+    align-items: center;
+    background: var(--card);
+    border: 2px solid var(--ink);
+    border-radius: 18px;
+    padding: 1.1rem 1.4rem;
+  }
+  .room h3 { font-family: var(--display); font-weight: 600; font-size: 1.35rem; margin: 0; }
+  .room .age { color: var(--ink-soft); font-size: .95rem; }
+  .pegs { display: flex; flex-wrap: wrap; gap: 6px; }
+  .peg { width: 16px; height: 16px; border-radius: 50%; }
+  .peg.taken { background: var(--ink); }
+  .peg.free { border: 3px solid var(--open); background: #fff; }
+  .spaces { text-align: right; font-family: var(--display); font-weight: 600; min-width: 7.5rem; }
+  .spaces .n { font-size: 2.2rem; line-height: 1; display: block; }
+  .spaces.some { color: var(--open); }
+  .spaces.none { color: var(--closed); }
+  .spaces .full { font-size: 1.25rem; display: block; line-height: 1.15; }
+  .key { display: flex; gap: 1.25rem; align-items: center; font-size: .92rem; color: var(--ink-soft); margin-top: 1rem; flex-wrap: wrap; }
+  .key span { display: inline-flex; align-items: center; gap: .4rem; }
+  .updated { font-size: .9rem; color: var(--ink-soft); margin-top: .75rem; }
+
+  /* ---------- form ---------- */
+  .apply { background: var(--sun); }
+  .panel { background: var(--card); border: 2px solid var(--ink); border-radius: 22px; padding: 2rem; max-width: 720px; }
+  form { display: grid; gap: 1rem; grid-template-columns: 1fr 1fr; }
+  .full-row { grid-column: 1 / -1; }
+  label { display: grid; gap: .3rem; font-weight: 700; font-size: .95rem; }
+  input, select, textarea {
+    font: inherit; font-weight: 400; color: var(--ink);
+    padding: .7rem .8rem; border: 2px solid var(--ink); border-radius: 12px; background: #fff; width: 100%;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+  .msg { grid-column: 1 / -1; padding: .8rem 1rem; border-radius: 12px; font-weight: 600; display: none; }
+  .msg.show { display: block; }
+  .msg.ok { background: #dff3ea; border: 2px solid var(--open); }
+  .msg.err { background: #fbe3e6; border: 2px solid var(--closed); }
+  .closed-box { max-width: 720px; }
+  .closed-box p { font-size: 1.1rem; }
+
+  footer { padding: 2.5rem 0 3rem; }
+  .contact { display: flex; gap: 2.5rem; flex-wrap: wrap; }
+  .contact div { min-width: 170px; }
+  .contact strong { display: block; font-family: var(--display); font-weight: 600; font-size: 1.05rem; }
+  .admin-link { font-size: .85rem; color: var(--ink-soft); margin-top: 2rem; display: inline-block; }
+
+  /* ---------- small screens ---------- */
+  @media (max-width: 760px) {
+    .hero-grid { grid-template-columns: 1fr; }
+    .brand { margin-bottom: 1.5rem; }
+    .room { grid-template-columns: 1fr; gap: .75rem; }
+    .spaces { text-align: left; }
+    form { grid-template-columns: 1fr; }
+    .panel { padding: 1.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div>
+        <div class="brand" id="brand">Creche</div>
+        <h1 id="headline">Spaces and applications</h1>
+        <p class="tagline" id="tagline"></p>
+        <a class="btn" href="#apply" id="heroBtn">See how to apply</a>
+      </div>
+      <div class="sign-area">
+        <div class="sign" aria-live="polite">
+          <div class="sign-board" id="signBoard">
+            <span class="hole l"></span><span class="hole r"></span>
+            <p class="sign-small">Applications are</p>
+            <p class="sign-word" id="signWord">&hellip;</p>
+            <p class="sign-note" id="signNote">Checking the latest status.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="spaces">
+    <div class="wrap">
+      <h2>Spaces right now</h2>
+      <p class="lead">Each circle is one place in the class. Filled circles are taken, open circles are free.</p>
+      <div class="rooms" id="rooms">
+        <p>Loading spaces&hellip;</p>
+      </div>
+      <div class="key">
+        <span><i class="peg taken"></i> Taken</span>
+        <span><i class="peg free"></i> Free</span>
+      </div>
+      <p class="updated" id="updated"></p>
+    </div>
+  </section>
+
+  <section class="apply" id="apply">
+    <div class="wrap">
+      <h2>Apply for a place</h2>
+      <div id="applyArea"></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="contact" id="contact"></div>
+    <a class="admin-link" href="/admin.html">Staff login</a>
+  </div>
+</footer>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  let info = null;
+
+  async function load() {
+    try {
+      const res = await fetch("/api/info");
+      if (!res.ok) throw new Error();
+      info = await res.json();
+      render();
+    } catch {
+      $("rooms").innerHTML = "<p>We could not load the latest spaces. Please refresh the page or call us.</p>";
+      $("signWord").textContent = "Unknown";
+      $("signNote").textContent = "Please call us to check.";
+    }
+  }
+
+  function render() {
+    const s = info.settings;
+    document.title = s.name + " | Spaces and applications";
+    $("brand").textContent = s.name;
+    $("tagline").textContent = s.tagline || "";
+
+    const open = s.applicationsOpen;
+    $("signBoard").className = "sign-board" + (open ? "" : " closed");
+    $("signWord").textContent = open ? "Open" : "Closed";
+    $("signNote").textContent = s.statusNote || (open ? "You can apply below." : "Please check back soon.");
+    $("headline").textContent = open ? "We are taking applications" : "Applications are closed for now";
+    $("heroBtn").textContent = open ? "Apply for a place" : "Contact us";
+    $("heroBtn").setAttribute("href", open ? "#apply" : "#contact");
+
+    $("rooms").innerHTML = info.groups.map((g) => {
+      const pegs = Math.min(g.capacity, 40);
+      const taken = Math.round((g.enrolled / Math.max(g.capacity, 1)) * pegs);
+      let dots = "";
+      for (let i = 0; i < pegs; i++) dots += `<i class="peg ${i < taken ? "taken" : "free"}"></i>`;
+      const count = g.spaces === 0
+        ? `<span class="spaces none"><span class="full">Full</span></span>`
+        : `<span class="spaces some"><span class="n">${g.spaces}</span>${g.spaces === 1 ? "space" : "spaces"}</span>`;
+      return `
+        <article class="room">
+          <div><h3>${esc(g.name)}</h3><div class="age">${esc(g.ageRange)}</div></div>
+          <div class="pegs" role="img" aria-label="${g.enrolled} of ${g.capacity} places taken">${dots}</div>
+          ${count}
+        </article>`;
+    }).join("") || "<p>No age groups have been added yet.</p>";
+
+    const d = new Date(s.lastUpdated);
+    $("updated").textContent = isNaN(d) ? "" : "Last updated " + d.toLocaleDateString(undefined, { day: "numeric", month: "long", year: "numeric" });
+
+    renderApply();
+    renderContact();
+  }
+
+  function renderApply() {
+    const s = info.settings;
+    if (!s.applicationsOpen) {
+      $("applyArea").innerHTML = `
+        <div class="panel closed-box">
+          <p><strong>Applications are closed right now.</strong></p>
+          <p>${esc(s.statusNote || "Please check back soon, or contact us to ask about the waiting list.")}</p>
+        </div>`;
+      return;
+    }
+    const options = info.groups.map((g) =>
+      `<option value="${esc(g.id)}">${esc(g.name)} (${esc(g.ageRange)})${g.spaces === 0 ? " - full, join waiting list" : ""}</option>`).join("");
+    $("applyArea").innerHTML = `
+      <div class="panel">
+        <form id="applyForm" novalidate>
+          <label>Your name<input name="parentName" autocomplete="name" required></label>
+          <label>Phone number<input name="phone" type="tel" autocomplete="tel" required></label>
+          <label class="full-row">Email (optional)<input name="email" type="email" autocomplete="email"></label>
+          <label>Child's name<input name="childName" required></label>
+          <label>Child's date of birth<input name="childBirthDate" type="date" required></label>
+          <label class="full-row">Age group<select name="groupId" required>${options}</select></label>
+          <label class="full-row">Anything we should know? (optional)<textarea name="message"></textarea></label>
+          <div class="msg" id="formMsg" role="status"></div>
+          <div class="full-row"><button class="btn" type="submit" id="submitBtn">Send application</button></div>
+        </form>
+      </div>`;
+    $("applyForm").addEventListener("submit", submitForm);
+  }
+
+  async function submitForm(e) {
+    e.preventDefault();
+    const form = e.target, msg = $("formMsg"), btn = $("submitBtn");
+    const body = Object.fromEntries(new FormData(form));
+    msg.className = "msg";
+    btn.disabled = true;
+    btn.textContent = "Sending…";
+    try {
+      const res = await fetch("/api/apply", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error || "Something went wrong.");
+      form.reset();
+      msg.textContent = "Thank you. We have your application and will contact you soon.";
+      msg.className = "msg show ok";
+    } catch (err) {
+      msg.textContent = err.message;
+      msg.className = "msg show err";
+    }
+    btn.disabled = false;
+    btn.textContent = "Send application";
+  }
+
+  function renderContact() {
+    const s = info.settings;
+    const parts = [];
+    if (s.phone) parts.push(`<div><strong>Call</strong><a href="tel:${esc(s.phone.replace(/\s/g, ""))}">${esc(s.phone)}</a></div>`);
+    if (s.email) parts.push(`<div><strong>Email</strong><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div>`);
+    if (s.address) parts.push(`<div><strong>Find us</strong>${esc(s.address)}</div>`);
+    if (s.hours) parts.push(`<div><strong>Opening hours</strong>${esc(s.hours)}</div>`);
+    $("contact").innerHTML = parts.join("");
+  }
+
+  load();
+  setInterval(load, 60000); // refresh vacancies every minute
+</script>
+</body>
+</html>
