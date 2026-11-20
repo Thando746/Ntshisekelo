@@ -16,7 +16,6 @@ if (ADMIN_PASSWORD === "changeme") {
 }
 
 app.use(express.json({ limit: "50kb" }));
-
 // Serve the pages from ./public, or from the project root if the files were uploaded flat.
 // Only these two pages are served, so server.js and data.json are never exposed.
 const PAGES_DIR = fs.existsSync(path.join(__dirname, "public", "index.html"))
@@ -26,6 +25,30 @@ console.log("Serving pages from:", PAGES_DIR);
 app.get("/", (req, res) => res.sendFile(path.join(PAGES_DIR, "index.html")));
 app.get("/index.html", (req, res) => res.sendFile(path.join(PAGES_DIR, "index.html")));
 app.get("/admin.html", (req, res) => res.sendFile(path.join(PAGES_DIR, "admin.html")));
+
+// Google Search Console verification file, e.g. google1234abcd5678.html
+app.get(/^\/(google[a-zA-Z0-9]+\.html)$/, (req, res) => {
+  const file = path.join(PAGES_DIR, req.params[0]);
+  if (!fs.existsSync(file)) return res.status(404).send("Not found");
+  res.sendFile(file);
+});
+
+// Needed on Render so the rate limiter sees real visitor addresses
+app.set("trust proxy", 1);
+
+const siteBase = (req) => process.env.SITE_URL || `${req.protocol}://${req.get("host")}`;
+
+app.get("/robots.txt", (req, res) => {
+  res.type("text/plain").send(
+    `User-agent: *\nDisallow: /admin.html\nDisallow: /api/\nSitemap: ${siteBase(req)}/sitemap.xml\n`
+  );
+});
+
+app.get("/sitemap.xml", (req, res) => {
+  res.type("application/xml").send(
+    `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${siteBase(req)}/</loc></url>\n</urlset>\n`
+  );
+});
 
 /* ---------- data store (JSON file) ---------- */
 
