@@ -16,15 +16,7 @@ if (ADMIN_PASSWORD === "changeme") {
 }
 
 app.use(express.json({ limit: "50kb" }));
-// Serve the pages from ./public, or from the project root if the files were uploaded flat.
-// Only these two pages are served, so server.js and data.json are never exposed.
-const PAGES_DIR = fs.existsSync(path.join(__dirname, "public", "index.html"))
-  ? path.join(__dirname, "public")
-  : __dirname;
-console.log("Serving pages from:", PAGES_DIR);
-app.get("/", (req, res) => res.sendFile(path.join(PAGES_DIR, "index.html")));
-app.get("/index.html", (req, res) => res.sendFile(path.join(PAGES_DIR, "index.html")));
-app.get("/admin.html", (req, res) => res.sendFile(path.join(PAGES_DIR, "admin.html")));
+app.use(express.static(path.join(__dirname, "public")));
 
 /* ---------- data store (JSON file) ---------- */
 
