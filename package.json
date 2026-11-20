@@ -1,6 +1,8 @@
 {
   "name": "creche-site",
   "version": "1.0.0",
+  "license": "UNLICENSED",
+  "private": true,
   "description": "Creche website with public vacancies, applications and an admin page",
   "main": "server.js",
   "scripts": {
