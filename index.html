@@ -3,8 +3,31 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Your Creche Name | Creche vacancies and applications in Your Area</title>
-<meta name="description" content="See how many places are free at Your Creche Name and apply online. Babies, toddlers and preschool. Your Area.">
+<title>Ntshisekelo Creche | Creche vacancies and applications in Nquthu</title>
+<meta name="description" content="See how many places are free at Ntshisekelo Creche in Mtshongweni Area, Nquthu, KwaZulu-Natal, and apply online.">
+<link rel="canonical" href="https://ntshisekelo.onrender.com/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Ntshisekelo Creche, Nquthu: vacancies and applications">
+<meta property="og:description" content="See how many places are free at Ntshisekelo Creche in Nquthu and apply online.">
+<meta property="og:url" content="https://ntshisekelo.onrender.com/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ChildCare",
+  "name": "Ntshisekelo Creche",
+  "alternateName": "Intshisekelo Creche",
+  "url": "https://ntshisekelo.onrender.com/",
+  "telephone": "+27820663775",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Mtshongweni Area",
+    "addressLocality": "Nquthu",
+    "addressRegion": "KwaZulu-Natal",
+    "postalCode": "3135",
+    "addressCountry": "ZA"
+  }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -105,6 +128,9 @@
   h2 { font-family: var(--display); font-weight: 600; font-size: 2rem; margin: 0 0 .4rem; }
   .lead { color: var(--ink-soft); margin: 0 0 2rem; max-width: 55ch; }
 
+  .about { padding: 2.5rem 0 0; }
+  .about p { max-width: 62ch; margin: .5rem 0 0; font-size: 1.1rem; }
+
   .rooms { display: grid; gap: 1rem; }
   .room {
     display: grid;
@@ -172,9 +198,9 @@
   <div class="wrap">
     <div class="hero-grid">
       <div>
-        <div class="brand" id="brand">Creche</div>
+        <div class="brand" id="brand">Ntshisekelo Creche</div>
         <h1 id="headline">Spaces and applications</h1>
-        <p class="tagline" id="tagline"></p>
+        <p class="tagline" id="tagline">Early childhood care in Nquthu, KwaZulu-Natal.</p>
         <a class="btn" href="#apply" id="heroBtn">See how to apply</a>
       </div>
       <div class="sign-area">
@@ -192,6 +218,13 @@
 </header>
 
 <main>
+  <section class="about" id="about">
+    <div class="wrap">
+      <h2>About Ntshisekelo Creche</h2>
+      <p>Ntshisekelo Creche (also spelled Intshisekelo Creche) is an early childhood development centre in Mtshongweni Area, Nquthu, KwaZulu-Natal. On this page you can see how many places are free in each age group, find out whether applications are open, and apply online.</p>
+    </div>
+  </section>
+
   <section id="spaces">
     <div class="wrap">
       <h2>Spaces right now</h2>
@@ -217,7 +250,10 @@
 
 <footer>
   <div class="wrap">
-    <div class="contact" id="contact"></div>
+    <div class="contact" id="contact">
+      <div><strong>Call</strong><a href="tel:+27820663775">082 066 3775</a></div>
+      <div><strong>Find us</strong>Mtshongweni Area, Nquthu, 3135</div>
+    </div>
     <a class="admin-link" href="/admin.html">Staff login</a>
   </div>
 </footer>
@@ -242,9 +278,8 @@
 
   function render() {
     const s = info.settings;
-    document.title = s.name + " | Creche vacancies and applications";
     $("brand").textContent = s.name;
-    $("tagline").textContent = s.tagline || "";
+    if (s.tagline) $("tagline").textContent = s.tagline;
 
     const open = s.applicationsOpen;
     $("signBoard").className = "sign-board" + (open ? "" : " closed");
@@ -335,7 +370,8 @@
     if (s.email) parts.push(`<div><strong>Email</strong><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></div>`);
     if (s.address) parts.push(`<div><strong>Find us</strong>${esc(s.address)}</div>`);
     if (s.hours) parts.push(`<div><strong>Opening hours</strong>${esc(s.hours)}</div>`);
-    $("contact").innerHTML = parts.join("");
+    // Keep the fixed phone and address from the HTML until real details are saved in the admin page
+    if (parts.length) $("contact").innerHTML = parts.join("");
   }
 
   load();
