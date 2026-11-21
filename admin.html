@@ -32,14 +32,17 @@
   }
   textarea { min-height: 70px; resize: vertical; }
   .btn { font: 700 1rem var(--display); background: var(--ink); color: #fff; border: 0; border-radius: 999px; padding: .65rem 1.3rem; cursor: pointer; }
+  .btn:disabled { opacity: .6; cursor: wait; }
   .btn.ghost { background: transparent; color: var(--ink); border: 2px solid var(--ink); }
   .btn.small { padding: .35rem .9rem; font-size: .9rem; }
   .btn.danger { background: var(--closed); }
   .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
   .full { grid-column: 1 / -1; }
-  .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: .7rem 1.2rem; border-radius: 999px; display: none; z-index: 10; }
+  .toast { position: fixed; bottom: 1rem; left: 50%; transform: translateX(-50%); background: var(--ink); color: #fff; padding: .7rem 1.2rem; border-radius: 999px; display: none; z-index: 10; max-width: 92vw; text-align: center; }
   .toast.show { display: block; }
   .toast.err { background: var(--closed); }
+  .hint { color: var(--ink-soft); font-size: .95rem; }
+  .hint.dirty { color: var(--closed); font-weight: 700; }
 
   /* login */
   #login { max-width: 380px; margin: 4rem auto; }
@@ -52,10 +55,12 @@
   .switch button.on-closed { background: var(--closed); color: #fff; }
 
   /* groups */
-  .group-row { display: grid; grid-template-columns: 1.2fr 1.2fr .7fr .7fr auto; gap: .7rem; align-items: end; margin-bottom: .8rem; }
-  .group-row .free { font-weight: 700; padding-bottom: .65rem; }
+  .group-row { display: grid; grid-template-columns: 1.2fr 1.2fr .7fr .8fr .6fr auto; gap: .7rem; align-items: end; margin-bottom: .8rem; }
+  .group-row .free { font-weight: 700; padding-bottom: .65rem; color: var(--open); }
 
   /* applications */
+  .apps-bar { display: flex; gap: .8rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+  .apps-bar select { width: auto; }
   .app { border-top: 2px solid var(--line); padding: 1rem 0; display: grid; gap: .4rem; }
   .app:first-of-type { border-top: 0; }
   .app-head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; align-items: baseline; }
@@ -63,7 +68,6 @@
   .app small { color: var(--ink-soft); }
   .app-actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
   .app-actions select { width: auto; padding: .3rem .5rem; }
-  .pill { font-weight: 700; font-size: .85rem; padding: .1rem .7rem; border-radius: 999px; background: var(--sun); }
 
   @media (max-width: 720px) {
     .grid2 { grid-template-columns: 1fr; }
@@ -73,12 +77,13 @@
 </head>
 <body>
 
-<div id="login" class="card-wrap">
+<div id="login">
   <section class="card">
     <h2>Staff login</h2>
     <form id="loginForm">
       <label>Password<input type="password" id="pw" autocomplete="current-password" required></label>
-      <p><button class="btn" type="submit">Log in</button></p>
+      <p><button class="btn" type="submit" id="loginBtn">Log in</button></p>
+      <p class="hint">If the site has been idle, the first login can take up to a minute.</p>
     </form>
     <p><a href="/">Back to the public page</a></p>
   </section>
@@ -88,7 +93,7 @@
   <header>
     <div class="wrap">
       <h1>Staff admin</h1>
-      <div><a href="/" target="_blank">View public page</a> &nbsp; <button class="btn ghost small" id="logout">Log out</button></div>
+      <div><a href="/" target="_blank" rel="noopener">View public page</a> &nbsp; <button class="btn ghost small" id="logout" type="button">Log out</button></div>
     </div>
   </header>
 
@@ -100,13 +105,13 @@
           <button id="btnOpen" type="button">Open</button>
           <button id="btnClosed" type="button">Closed</button>
         </div>
-        <span id="statusHint"></span>
+        <span id="statusHint" class="hint"></span>
       </div>
       <p></p>
       <label>Message shown on the sign
         <textarea id="statusNote" placeholder="For example: Applications for the new year are open."></textarea>
       </label>
-      <p><button class="btn" id="saveStatus">Save status</button></p>
+      <p><button class="btn" id="saveStatus" type="button">Save status</button></p>
     </section>
 
     <section class="card">
@@ -128,11 +133,24 @@
         <label class="full">Address<input id="s_address"></label>
         <label class="full">Opening hours<input id="s_hours"></label>
       </div>
-      <p><button class="btn" id="saveDetails">Save details</button></p>
+      <p><button class="btn" id="saveDetails" type="button">Save details</button></p>
     </section>
 
     <section class="card">
       <h2>Applications received <span id="appCount"></span></h2>
+      <div class="apps-bar">
+        <label style="display:flex;align-items:center;gap:.5rem;">Show
+          <select id="appFilter">
+            <option value="all">All</option>
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="waitlist">Waiting list</option>
+            <option value="accepted">Accepted</option>
+            <option value="declined">Declined</option>
+          </select>
+        </label>
+        <button class="btn ghost small" id="exportCsv" type="button">Download list (CSV)</button>
+      </div>
       <div id="apps"></div>
     </section>
   </div>
@@ -143,7 +161,15 @@
 <script>
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  let token = sessionStorage.getItem("creche_token") || "";
+
+  // Browser storage can be blocked (private mode), so never let it crash the page
+  const store = {
+    get(k) { try { return sessionStorage.getItem(k) || ""; } catch { return ""; } },
+    set(k, v) { try { sessionStorage.setItem(k, v); } catch {} },
+    del(k) { try { sessionStorage.removeItem(k); } catch {} },
+  };
+
+  let token = store.get("creche_token");
   let data = null;
   let isOpen = true;
 
@@ -152,17 +178,22 @@
     t.textContent = text;
     t.className = "toast show" + (err ? " err" : "");
     clearTimeout(toast.timer);
-    toast.timer = setTimeout(() => (t.className = "toast"), 3000);
+    toast.timer = setTimeout(() => (t.className = "toast"), 3500);
   }
 
   async function api(path, method = "GET", body) {
-    const res = await fetch(path, {
-      method,
-      headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
-      body: body ? JSON.stringify(body) : undefined,
-    });
+    let res;
+    try {
+      res = await fetch(path, {
+        method,
+        headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+        body: body ? JSON.stringify(body) : undefined,
+      });
+    } catch {
+      throw new Error("Could not reach the server. Check your internet and try again.");
+    }
     const out = await res.json().catch(() => ({}));
-    if (res.status === 401 && token) { logout(); }
+    if (res.status === 401 && token) logout();
     if (!res.ok) throw new Error(out.error || "Something went wrong.");
     return out;
   }
@@ -170,20 +201,27 @@
   /* ---------- login ---------- */
   $("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
+    const btn = $("loginBtn");
+    btn.disabled = true;
+    btn.textContent = "Logging in…";
     try {
       const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: $("pw").value }) });
-      const out = await res.json();
-      if (!res.ok) throw new Error(out.error);
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Could not log in.");
       token = out.token;
-      sessionStorage.setItem("creche_token", token);
+      store.set("creche_token", token);
       $("pw").value = "";
-      start();
-    } catch (err) { toast(err.message || "Could not log in.", true); }
+      await start();
+    } catch (err) {
+      toast(err.message || "Could not log in.", true);
+    }
+    btn.disabled = false;
+    btn.textContent = "Log in";
   });
 
   function logout() {
     token = "";
-    sessionStorage.removeItem("creche_token");
+    store.del("creche_token");
     $("app").hidden = true;
     $("login").hidden = false;
   }
@@ -192,7 +230,10 @@
   async function start() {
     try {
       data = await api("/api/admin/data");
-    } catch { return; }
+    } catch (err) {
+      toast(err.message, true);
+      return;
+    }
     $("login").hidden = true;
     $("app").hidden = false;
     fill();
@@ -202,38 +243,67 @@
   function fill() {
     const s = data.settings;
     isOpen = s.applicationsOpen;
-    paintSwitch();
     $("statusNote").value = s.statusNote || "";
     ["name", "tagline", "phone", "email", "address", "hours"].forEach((k) => ($("s_" + k).value = s[k] || ""));
+    paintSwitch();
     paintGroups();
     paintApps();
   }
 
+  /* ---------- open / closed ---------- */
   function paintSwitch() {
     $("btnOpen").className = isOpen ? "on-open" : "";
     $("btnClosed").className = !isOpen ? "on-closed" : "";
-    $("statusHint").textContent = isOpen ? "People can send applications." : "The apply form is hidden from the public.";
+    paintHint();
+  }
+  function paintHint() {
+    const s = data.settings;
+    const changed = isOpen !== s.applicationsOpen || $("statusNote").value !== (s.statusNote || "");
+    const h = $("statusHint");
+    if (changed) {
+      h.textContent = "Not saved yet. Click Save status to publish this.";
+      h.className = "hint dirty";
+    } else {
+      h.textContent = isOpen ? "Applications are open. People can send applications." : "Applications are closed. The apply form is hidden from the public.";
+      h.className = "hint";
+    }
   }
   $("btnOpen").onclick = () => { isOpen = true; paintSwitch(); };
   $("btnClosed").onclick = () => { isOpen = false; paintSwitch(); };
+  $("statusNote").addEventListener("input", paintHint);
 
-  /* ---------- settings ---------- */
-  function settingsBody() {
-    return {
-      name: $("s_name").value, tagline: $("s_tagline").value, phone: $("s_phone").value,
-      email: $("s_email").value, address: $("s_address").value, hours: $("s_hours").value,
-      statusNote: $("statusNote").value, applicationsOpen: isOpen,
+  /* ---------- settings (status and details save separately) ---------- */
+  function bodyFor(part) {
+    const s = data.settings;
+    const body = {
+      name: s.name, tagline: s.tagline, phone: s.phone, email: s.email, address: s.address,
+      hours: s.hours, statusNote: s.statusNote, applicationsOpen: s.applicationsOpen,
     };
+    if (part === "status") {
+      body.statusNote = $("statusNote").value;
+      body.applicationsOpen = isOpen;
+    } else {
+      body.name = $("s_name").value;
+      body.tagline = $("s_tagline").value;
+      body.phone = $("s_phone").value;
+      body.email = $("s_email").value;
+      body.address = $("s_address").value;
+      body.hours = $("s_hours").value;
+    }
+    return body;
   }
-  async function saveSettings(msg) {
+  async function saveSettings(part, msg, btn) {
+    btn.disabled = true;
     try {
-      const out = await api("/api/admin/settings", "PUT", settingsBody());
+      const out = await api("/api/admin/settings", "PUT", bodyFor(part));
       data.settings = out.settings;
+      paintHint();
       toast(msg);
     } catch (err) { toast(err.message, true); }
+    btn.disabled = false;
   }
-  $("saveStatus").onclick = () => saveSettings("Status saved");
-  $("saveDetails").onclick = () => saveSettings("Details saved");
+  $("saveStatus").onclick = (e) => saveSettings("status", "Status saved", e.currentTarget);
+  $("saveDetails").onclick = (e) => saveSettings("details", "Details saved", e.currentTarget);
 
   /* ---------- groups ---------- */
   function paintGroups() {
@@ -241,45 +311,60 @@
       <div class="group-row" data-i="${i}">
         <label>Group name<input data-f="name" value="${esc(g.name)}"></label>
         <label>Ages<input data-f="ageRange" value="${esc(g.ageRange)}"></label>
-        <label>Total places<input data-f="capacity" type="number" min="0" value="${g.capacity}"></label>
-        <label>Children enrolled<input data-f="enrolled" type="number" min="0" value="${g.enrolled}"></label>
+        <label>Total places<input data-f="capacity" type="number" min="0" value="${esc(g.capacity)}"></label>
+        <label>Children enrolled<input data-f="enrolled" type="number" min="0" value="${esc(g.enrolled)}"></label>
+        <div class="free" data-free>${Math.max(0, (+g.capacity || 0) - (+g.enrolled || 0))} free</div>
         <button class="btn danger small" data-remove="${i}" type="button" aria-label="Remove ${esc(g.name)}">Remove</button>
       </div>`).join("") || "<p>No age groups yet. Add one below.</p>";
   }
   function readGroups() {
     return [...document.querySelectorAll(".group-row")].map((row) => {
-      const i = +row.dataset.i;
-      const g = { id: data.groups[i].id };
+      const g = { id: data.groups[+row.dataset.i].id };
       row.querySelectorAll("input").forEach((inp) => (g[inp.dataset.f] = inp.value));
       return g;
     });
   }
+  $("groups").addEventListener("input", (e) => {
+    const row = e.target.closest(".group-row");
+    if (!row) return;
+    const cap = parseInt(row.querySelector('[data-f="capacity"]').value, 10) || 0;
+    const enr = parseInt(row.querySelector('[data-f="enrolled"]').value, 10) || 0;
+    row.querySelector("[data-free]").textContent = Math.max(0, cap - enr) + " free";
+  });
   $("groups").addEventListener("click", (e) => {
     const idx = e.target.dataset.remove;
     if (idx === undefined) return;
     data.groups = readGroups();
     data.groups.splice(+idx, 1);
     paintGroups();
+    toast("Group removed. Click Save spaces to keep this change.");
   });
   $("addGroup").onclick = () => {
     data.groups = readGroups();
     data.groups.push({ id: "g" + Date.now(), name: "", ageRange: "", capacity: 10, enrolled: 0 });
     paintGroups();
   };
-  $("saveGroups").onclick = async () => {
+  $("saveGroups").onclick = async (e) => {
+    const btn = e.currentTarget;
+    btn.disabled = true;
     try {
       const out = await api("/api/admin/groups", "PUT", { groups: readGroups() });
       data.groups = out.groups;
       paintGroups();
+      paintApps();
       toast("Spaces saved");
     } catch (err) { toast(err.message, true); }
+    btn.disabled = false;
   };
 
   /* ---------- applications ---------- */
   const STATUSES = [["new", "New"], ["contacted", "Contacted"], ["waitlist", "Waiting list"], ["accepted", "Accepted"], ["declined", "Declined"]];
+
   function paintApps() {
-    const list = data.applications;
-    $("appCount").textContent = list.length ? `(${list.length})` : "";
+    const all = data.applications;
+    const filter = $("appFilter").value;
+    const list = filter === "all" ? all : all.filter((a) => a.status === filter);
+    $("appCount").textContent = all.length ? `(${all.length})` : "";
     $("apps").innerHTML = list.map((a) => {
       const g = data.groups.find((x) => x.id === a.groupId);
       const d = new Date(a.createdAt).toLocaleString();
@@ -296,13 +381,23 @@
           <button class="btn danger small" data-del type="button">Delete</button>
         </div>
       </div>`;
-    }).join("") || "<p>No applications yet.</p>";
+    }).join("") || (all.length ? "<p>No applications with this status.</p>" : "<p>No applications yet.</p>");
   }
+  $("appFilter").addEventListener("change", paintApps);
+
   $("apps").addEventListener("change", async (e) => {
     if (!e.target.matches("[data-status]")) return;
     const id = e.target.closest(".app").dataset.id;
-    try { await api("/api/admin/applications/" + id, "PATCH", { status: e.target.value }); toast("Status updated"); }
-    catch (err) { toast(err.message, true); }
+    const a = data.applications.find((x) => x.id === id);
+    const previous = a ? a.status : "new";
+    try {
+      await api("/api/admin/applications/" + id, "PATCH", { status: e.target.value });
+      if (a) a.status = e.target.value;
+      toast("Status updated");
+    } catch (err) {
+      e.target.value = previous;
+      toast(err.message, true);
+    }
   });
   $("apps").addEventListener("click", async (e) => {
     if (!e.target.matches("[data-del]")) return;
@@ -315,6 +410,30 @@
       toast("Application deleted");
     } catch (err) { toast(err.message, true); }
   });
+
+  /* ---------- download list as CSV ---------- */
+  function csvCell(v) {
+    let t = String(v ?? "");
+    if (/^[=@\t\r]|^[+\-]\D/.test(t)) t = "'" + t; // stops spreadsheet formulas from running
+    return '"' + t.replace(/"/g, '""') + '"';
+  }
+  $("exportCsv").onclick = () => {
+    if (!data.applications.length) { toast("There are no applications to download.", true); return; }
+    const head = ["Received", "Child", "Date of birth", "Age group", "Parent", "Phone", "Email", "Status", "Note"];
+    const rows = data.applications.map((a) => {
+      const g = data.groups.find((x) => x.id === a.groupId);
+      return [a.createdAt, a.childName, a.childBirthDate, g ? g.name : "", a.parentName, a.phone, a.email, a.status, a.message];
+    });
+    const csv = [head, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n");
+    const url = URL.createObjectURL(new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "applications.csv";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
 
   if (token) start();
 </script>
